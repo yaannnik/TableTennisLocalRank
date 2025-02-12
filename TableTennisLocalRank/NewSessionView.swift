@@ -132,7 +132,7 @@ struct NewSessionView: View {
                     
                     HStack {
                         Button(action: {
-                            if let score = Int(initialScore), !playerID.isEmpty {
+                            if let score = Int(initialScore), (score >= 0 && !playerID.isEmpty) {
                                 // Prevent duplicates by checking if playerID already exists in playerList
                                 if !playerList.contains(where: { $0.id == playerID }) {
                                     playerList.append(Player(id:playerID, score:String(score)))  // Add player to the list
@@ -146,6 +146,7 @@ struct NewSessionView: View {
                                     // Show an alert or feedback that the player already exists
                                     print("Player ID already exists!")
                                     showDuplicateIdAlert = true
+                                    print(showDuplicateIdAlert)
                                 }
                             } else {
                                 // Handle the case where the score is invalid
@@ -158,6 +159,16 @@ struct NewSessionView: View {
                                 .background(Color.green)
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
+                        }
+                        .alert(isPresented: $showDuplicateIdAlert) {
+                            Alert(
+                                title: Text("Duplicate Player ID"),
+                                message: Text("Player \(playerID) already exists in the list."),
+                                dismissButton: .default(Text("OK"))
+                            )
+                        }
+                        .alert(isPresented: $showInvalidScoreAlert) {
+                            Alert(title: Text("Invalid Score"), message: Text("Please enter a valid staring score."), dismissButton: .default(Text("OK")))
                         }
                         
                         Button(action: {
@@ -174,16 +185,6 @@ struct NewSessionView: View {
                     .padding()
                 }
                 .padding()
-            }
-            .alert(isPresented: $showDuplicateIdAlert) {
-                Alert(
-                    title: Text("Duplicate Player ID"),
-                    message: Text("The player ID \(playerID) already exists in the list."),
-                    dismissButton: .default(Text("OK"))
-                )
-            }
-            .alert(isPresented: $showInvalidScoreAlert) {
-                Alert(title: Text("Invalid Score"), message: Text("Please enter a valid integer for the score."), dismissButton: .default(Text("OK")))
             }
         }
         .onAppear {
