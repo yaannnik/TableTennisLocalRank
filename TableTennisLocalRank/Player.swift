@@ -9,10 +9,10 @@ import Foundation
 
 struct Player: Identifiable, Decodable, Encodable {
     var id: String
-    var score: String
+    var score: Int
 
     // Optional: Add a custom initializer to make decoding easier
-    init(id: String, score: String) {
+    init(id: String, score: Int) {
         self.id = id
         self.score = score
     }

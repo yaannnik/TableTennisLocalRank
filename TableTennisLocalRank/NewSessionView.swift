@@ -73,7 +73,7 @@ struct NewSessionView: View {
                             Text(player.id)
                                 .fontWeight(.bold)
                             Spacer()
-                            Text(player.score)
+                            Text(String(player.score))
                         }
                         .padding()
                         .background(Color.white)
@@ -135,7 +135,7 @@ struct NewSessionView: View {
                             if let score = Int(initialScore), (score >= 0 && !playerID.isEmpty) {
                                 // Prevent duplicates by checking if playerID already exists in playerList
                                 if !playerList.contains(where: { $0.id == playerID }) {
-                                    playerList.append(Player(id:playerID, score:String(score)))  // Add player to the list
+                                    playerList.append(Player(id:playerID, score:score))  // Add player to the list
                                     playerID = ""  // Clear the playerID input field
                                     initialScore = ""  // Clear the initialScore input field
                                     
