@@ -8,13 +8,18 @@
 import SwiftUI
 
 struct NewSessionView: View {
+    enum AlertType {
+        case duplicatePlayer(String) // Player ID as associated value
+        case invalidScore
+    }
+    
     @Environment(\.dismiss) var dismiss
     
     @State private var showAddPlayerSheet = false
     @State private var playerID = ""
     @State private var initialScore = ""
-    @State private var showDuplicateIdAlert = false
-    @State private var showInvalidScoreAlert = false
+    @State private var activeAlert: AlertType? // Single alert state
+    @State private var showAlert = false       // Controls whether alert is shown
     @State private var playerList: [Player] = []  // Change from [(String, String)] to [Player]
     
     init() {
@@ -68,7 +73,8 @@ struct NewSessionView: View {
                     .padding()
                 
                 List {
-                    ForEach(playerList, id: \.id) { player in
+                    // always show this sorted ranking
+                    ForEach(playerList.sorted { $0.score > $1.score }, id: \.id) { player in
                         HStack {
                             Text(player.id)
                                 .fontWeight(.bold)
@@ -132,26 +138,20 @@ struct NewSessionView: View {
                     
                     HStack {
                         Button(action: {
-                            if let score = Int(initialScore), (score >= 0 && !playerID.isEmpty) {
-                                // Prevent duplicates by checking if playerID already exists in playerList
+                            if let score = Int(initialScore), score >= 0, !playerID.isEmpty {
                                 if !playerList.contains(where: { $0.id == playerID }) {
-                                    playerList.append(Player(id:playerID, score:score))  // Add player to the list
-                                    playerID = ""  // Clear the playerID input field
-                                    initialScore = ""  // Clear the initialScore input field
-                                    
+                                    playerList.append(Player(id: playerID, score: score))
+                                    playerID = ""
+                                    initialScore = ""
                                     savePlayerList()
-                                    
-                                    showAddPlayerSheet.toggle()  // Dismiss the sheet
+                                    showAddPlayerSheet.toggle()
                                 } else {
-                                    // Show an alert or feedback that the player already exists
-                                    print("Player ID already exists!")
-                                    showDuplicateIdAlert = true
-                                    print(showDuplicateIdAlert)
+                                    activeAlert = .duplicatePlayer(playerID)
+                                    showAlert = true
                                 }
                             } else {
-                                // Handle the case where the score is invalid
-                                print("Invalid score!")
-                                showInvalidScoreAlert = true  // Set a flag to show the alert for invalid score
+                                activeAlert = .invalidScore
+                                showAlert = true
                             }
                         }) {
                             Text("Confirm")
@@ -160,15 +160,23 @@ struct NewSessionView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
                         }
-                        .alert(isPresented: $showDuplicateIdAlert) {
-                            Alert(
-                                title: Text("Duplicate Player ID"),
-                                message: Text("Player \(playerID) already exists in the list."),
-                                dismissButton: .default(Text("OK"))
-                            )
-                        }
-                        .alert(isPresented: $showInvalidScoreAlert) {
-                            Alert(title: Text("Invalid Score"), message: Text("Please enter a valid staring score."), dismissButton: .default(Text("OK")))
+                        .alert(isPresented: $showAlert) {
+                            switch activeAlert {
+                            case .duplicatePlayer(let id):
+                                return Alert(
+                                    title: Text("Duplicate Player ID"),
+                                    message: Text("Player \(id) already exists in the list."),
+                                    dismissButton: .default(Text("OK"))
+                                )
+                            case .invalidScore:
+                                return Alert(
+                                    title: Text("Invalid Score"),
+                                    message: Text("Please enter a valid starting score."),
+                                    dismissButton: .default(Text("OK"))
+                                )
+                            case .none:
+                                return Alert(title: Text("Unknown Error")) // Fallback case (shouldn't occur)
+                            }
                         }
                         
                         Button(action: {
