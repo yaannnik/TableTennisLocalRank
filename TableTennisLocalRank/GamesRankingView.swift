@@ -150,7 +150,7 @@ struct GamesRankingView: View {
                                         addingGameAlert = true
                                         activeAlert = .invalidFinalScore
                                     } else {
-                                        let deltaScore = game.delta()
+                                        let deltaScore = game.delta() - 1
                                         let winner: Player? = game.winner
                                         let loser: Player? = game.loser
                                         for i in playerList.indices {
