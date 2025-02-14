@@ -15,11 +15,14 @@ struct NewSessionView: View {
     
     @Environment(\.dismiss) var dismiss
     
+    @State private var navigatingToGameView = false
+    
     @State private var showAddPlayerSheet = false
     @State private var playerID = ""
     @State private var initialScore = ""
     @State private var activeAlert: AlertType? // Single alert state
-    @State private var showAlert = false       // Controls whether alert is shown
+    @State private var addingPlayerAlert = false       // Controls whether alert is shown
+    @State private var playerNumberAlert = false
     @State private var playerList: [Player] = []  // Change from [(String, String)] to [Player]
     
     init() {
@@ -53,12 +56,12 @@ struct NewSessionView: View {
         savePlayerList()
     }
     
-    var currentDate: String {
-        let today = Date()
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        return dateFormatter.string(from: today)
-    }
+//    var currentDate: String {
+//        let today = Date()
+//        let dateFormatter = DateFormatter()
+//        dateFormatter.dateFormat = "yyyy-MM-dd"
+//        return dateFormatter.string(from: today)
+//    }
     
     var body: some View {
         ZStack {
@@ -89,14 +92,15 @@ struct NewSessionView: View {
                     .onDelete(perform: deletePlayer) // Swipe-to-delete action
                 }
                 .padding(.top)
-                .frame(maxHeight: 300) // Limit the list height if necessary
+                .frame(maxHeight: 600) // Limit the list height if necessary
                 
-                HStack(spacing: 20) {
+                HStack(alignment: .center, spacing: 20.0) {
                     Button(action: {
                         // show add player Popup
                         showAddPlayerSheet.toggle()
                     }) {
                         Text("Add Player")
+                            .multilineTextAlignment(.center)
                             .padding()
                             .frame(maxWidth: .infinity)
                             .background(Color.blue)
@@ -105,16 +109,32 @@ struct NewSessionView: View {
                     }
                     
                     Button(action: {
-                        print("Continue clicked")
+                        playerNumberAlert = playerList.count < 2
+                        navigatingToGameView = !playerNumberAlert
                     }) {
-                        Text("Continue")
+                        Text("Go To Games")
+                            .multilineTextAlignment(.center)
                             .padding()
                             .frame(maxWidth: .infinity)
                             .background(Color.blue)
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
+                    .alert(isPresented: $playerNumberAlert) {
+                        return Alert(
+                            title: Text("Add more player"),
+                            message: Text("At lease two players are needed"),
+                            dismissButton: .default(Text("OK"))
+                        )
+                    }
+                    
+                    NavigationLink(
+                        destination: GamesRankingView(),
+                        isActive: $navigatingToGameView) {
+                            EmptyView()
+                        }
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal)
             }
             
@@ -147,11 +167,11 @@ struct NewSessionView: View {
                                     showAddPlayerSheet.toggle()
                                 } else {
                                     activeAlert = .duplicatePlayer(playerID)
-                                    showAlert = true
+                                    addingPlayerAlert = true
                                 }
                             } else {
                                 activeAlert = .invalidScore
-                                showAlert = true
+                                addingPlayerAlert = true
                             }
                         }) {
                             Text("Confirm")
@@ -160,7 +180,7 @@ struct NewSessionView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
                         }
-                        .alert(isPresented: $showAlert) {
+                        .alert(isPresented: $addingPlayerAlert) {
                             switch activeAlert {
                             case .duplicatePlayer(let id):
                                 return Alert(
@@ -171,7 +191,7 @@ struct NewSessionView: View {
                             case .invalidScore:
                                 return Alert(
                                     title: Text("Invalid Score"),
-                                    message: Text("Please enter a valid starting score."),
+                                    message: Text("Please enter a valid id or starting score."),
                                     dismissButton: .default(Text("OK"))
                                 )
                             case .none:

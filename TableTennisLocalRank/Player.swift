@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Player: Identifiable, Decodable, Encodable {
+struct Player: Identifiable, Decodable, Encodable, Hashable {
     var id: String
     var score: Int
 
@@ -15,5 +15,9 @@ struct Player: Identifiable, Decodable, Encodable {
     init(id: String, score: Int) {
         self.id = id
         self.score = score
+    }
+    
+    mutating func updateScore(delta: Int) -> Void {
+        self.score += delta
     }
 }
