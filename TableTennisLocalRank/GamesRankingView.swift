@@ -127,6 +127,7 @@ struct GamesRankingView: View {
                         TextField("Enter Home Player Score", text: $homeScore)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .padding()
+                            .keyboardType(.numberPad)
                         
                         // initialScore
                         TextField("Enter Away Player Score", text: $awayScore)
